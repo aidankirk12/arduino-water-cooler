@@ -3,9 +3,11 @@ Authors: Aiden Kirk, Gisselle Cruz-Robinson, John Michael-Libed
 */
 #include <LiquidCrystal.h>
 #include <Stepper.h>
+#include <dht.h>
 
 #define RDA 0x80
 #define TBE 0x20  
+#define DHT11_PIN 34
 
 //ADC Pointers
 volatile unsigned char* my_ADMUX = (unsigned char*) 0x7C;
@@ -23,6 +25,9 @@ volatile unsigned char *myUDR0   = (unsigned char *)0x00C6;
 //Stepper Motor Revolutions + pin mapping
 const int stepsPerRevolution = 2038;
 Stepper myStepper = Stepper(stepsPerRevolution, 28, 29, 30, 31);
+
+//DHT11
+dht DHT;
 
 //LCD pin mapping
 const int RS = 11, EN = 12, D4 = 2, D5 = 3, D6 = 4, D7 = 5;
