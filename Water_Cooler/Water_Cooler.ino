@@ -2,6 +2,7 @@
 Authors: Aiden Kirk, Gisselle Cruz-Robinson, John Michael-Libed
 */
 #include <LiquidCrystal.h>
+#include <Stepper.h>
 
 #define RDA 0x80
 #define TBE 0x20  
@@ -18,6 +19,10 @@ volatile unsigned char *myUCSR0B = (unsigned char *)0x00C1;
 volatile unsigned char *myUCSR0C = (unsigned char *)0x00C2;
 volatile unsigned int  *myUBRR0  = (unsigned int *) 0x00C4;
 volatile unsigned char *myUDR0   = (unsigned char *)0x00C6;
+
+//Stepper Motor Revolutions + pin mapping
+const int stepsPerRevolution = 2038;
+Stepper myStepper = Stepper(stepsPerRevolution, 28, 29, 30, 31);
 
 //LCD pin mapping
 const int RS = 11, EN = 12, D4 = 2, D5 = 3, D6 = 4, D7 = 5;
