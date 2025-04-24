@@ -4,10 +4,13 @@ Authors: Aiden Kirk, Gisselle Cruz-Robinson, John Michael-Libed
 #include <LiquidCrystal.h>
 #include <Stepper.h>
 #include <dht.h>
+#include <RTClib.h>
 
 #define RDA 0x80
-#define TBE 0x20  
+#define TBE 0x20 
 #define DHT11_PIN 34
+#define ENABLE 35
+
 
 //ADC Pointers
 volatile unsigned char* my_ADMUX = (unsigned char*) 0x7C;
@@ -80,6 +83,8 @@ void loop() {
   else if (waterLevel < LOWER_THRESHOLD) {
     //ERROR STATE WHEN WATER BECOMES LOW
     //CHANGE STATE AND PRINT OUT ERROR
+    lcd.clear();
+    lcd.write("ERROR");
   }
   else {
     //CHANGE OUT TO LCD 
@@ -126,6 +131,23 @@ unsigned int adc_read(unsigned char adc_channel_num)
   
   unsigned int val = *my_ADC_DATA & 0x3FF;
   return val;
+}
+
+//Fan motor functions
+void startMotor(){
+  //Start button is pin 18?
+  //assuming "start" variable created to represent start button pin
+  /*
+  if(*start & 0x08){
+    *port_c |= 0x10; //Set DIR1 high
+    *port_c &= 0x08; //Set DIR2 low
+    analogWrite(ENABLE, 250);
+  }
+  */
+}
+
+void stopMotor(){
+  analogWrite(ENABLE, 0);
 }
 
 void U0init(int U0baud)
