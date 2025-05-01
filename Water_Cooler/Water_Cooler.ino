@@ -9,7 +9,7 @@ Authors: Aidan Kirk, Gisselle Cruz-Robinson, John Michael-Libed
 #define RDA 0x80
 #define TBE 0x20 
 #define DHT11_PIN 34
-#define ENABLE 35
+#define ENABLE 38
 
 // Start/Stop Button
 volatile unsigned char *ddrD = (unsigned char *) 0x2A;
@@ -31,6 +31,11 @@ volatile unsigned char *myUCSR0B = (unsigned char *) 0x00C1;
 volatile unsigned char *myUCSR0C = (unsigned char *) 0x00C2;
 volatile unsigned int  *myUBRR0  = (unsigned int  *) 0x00C4;
 volatile unsigned char *myUDR0   = (unsigned char *) 0x00C6;
+
+// Fan Motor
+volatile unsigned char *portC = (unsigned char *) 0x28;
+volatile unsigned char *ddrC = (unsigned char *) 0x27;
+volatile unsigned char *pinC = (unsigned char *) 0x26;
 
 // States
 enum State {
@@ -74,6 +79,13 @@ void setup() {
   *ddrA |= (1 << 1);
   *ddrA |= (1 << 2);
   *ddrA |= (1 << 3);
+
+  // Configure Fan Motor Pins
+
+  //0010 0000
+  *ddrC |= (1 << 5); //DIR2: Pin 32
+  *ddrC |= (1 << 4); //DIR1: Pin 33
+  *ddrD |= (1 << 7); //ENABLE: Pin 38
 
   // LCD displaying current air temperature and humidity
   lcd.begin(16, 2);
@@ -200,6 +212,17 @@ unsigned int adc_read(unsigned char adc_channel_num) {
   return val;
 }
 
+//Fan motor functions
+void startMotor(){
+  *portC |= 0x20; //Set DIR1 high
+  *portC &= 0x10; //Set DIR2 low
+  analogWrite(ENABLE, 250);
+}
+
+void stopMotor(){
+  analogWrite(ENABLE, 0);
+}
+
 void U0init(int U0baud) {
   unsigned long FCPU = 16000000;
   unsigned int tbaud;
@@ -209,34 +232,6 @@ void U0init(int U0baud) {
   *myUCSR0B = 0x18;
   *myUCSR0C = 0x06;
   *myUBRR0  = tbaud;
-}
-//Fan motor functions
-void startMotor(){
-  //Start button is pin 18?
-  //assuming "start" variable created to represent start button pin
-  /*
-  if(*start & 0x08){
-    *port_c |= 0x10; //Set DIR1 high
-    *port_c &= 0x08; //Set DIR2 low
-    analogWrite(ENABLE, 250);
-  }
-  */
-}
-
-void stopMotor(){
-  analogWrite(ENABLE, 0);
-}
-
-void U0init(int U0baud)
-{
- unsigned long FCPU = 16000000;
- unsigned int tbaud;
- tbaud = (FCPU / 16 / U0baud - 1);
- // Same as (FCPU / (16 * U0baud)) - 1;
- *myUCSR0A = 0x20;
- *myUCSR0B = 0x18;
- *myUCSR0C = 0x06;
- *myUBRR0  = tbaud;
 }
 
 unsigned char U0kbhit() {
