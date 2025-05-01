@@ -4,10 +4,12 @@ Authors: Aidan Kirk, Gisselle Cruz-Robinson, John Michael-Libed
 #include <LiquidCrystal.h>
 #include <Stepper.h>
 #include <dht.h>
+#include <RTClib.h>
 
 #define RDA 0x80
-#define TBE 0x20  
+#define TBE 0x20 
 #define DHT11_PIN 34
+#define ENABLE 35
 
 // Start/Stop Button
 volatile unsigned char *ddrD = (unsigned char *) 0x2A;
@@ -207,6 +209,34 @@ void U0init(int U0baud) {
   *myUCSR0B = 0x18;
   *myUCSR0C = 0x06;
   *myUBRR0  = tbaud;
+}
+//Fan motor functions
+void startMotor(){
+  //Start button is pin 18?
+  //assuming "start" variable created to represent start button pin
+  /*
+  if(*start & 0x08){
+    *port_c |= 0x10; //Set DIR1 high
+    *port_c &= 0x08; //Set DIR2 low
+    analogWrite(ENABLE, 250);
+  }
+  */
+}
+
+void stopMotor(){
+  analogWrite(ENABLE, 0);
+}
+
+void U0init(int U0baud)
+{
+ unsigned long FCPU = 16000000;
+ unsigned int tbaud;
+ tbaud = (FCPU / 16 / U0baud - 1);
+ // Same as (FCPU / (16 * U0baud)) - 1;
+ *myUCSR0A = 0x20;
+ *myUCSR0B = 0x18;
+ *myUCSR0C = 0x06;
+ *myUBRR0  = tbaud;
 }
 
 unsigned char U0kbhit() {
