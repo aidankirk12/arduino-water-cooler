@@ -50,6 +50,10 @@ State state = DISABLED;
 const int stepsPerRevolution = 2038;
 Stepper myStepper = Stepper(stepsPerRevolution, 28, 29, 30, 31);
 
+
+//Stepper Motor Control
+int currentStepperPosition = 0;
+
 // DHT11
 dht DHT;
 
@@ -81,6 +85,9 @@ void setup() {
   *ddrA |= (1 << 3);
 
   // Configure Fan Motor Pins
+
+  *ddrC &= ~(1 << 1); // PIN 36
+  *ddrC &= ~(1 << 0); // PIN 37
 
   //0010 0000
   *ddrC |= (1 << 5); //DIR2: Pin 32
@@ -164,6 +171,7 @@ void clearLCD() {
   lcd.write("                ");
 }
 
+
 void updateLCD(float temp, float humidity) {
   if (millis() - lastLCDUpdate >= LCD_UPDATE_INTERVAL) {
     lastLCDUpdate = millis();
@@ -210,6 +218,60 @@ unsigned int adc_read(unsigned char adc_channel_num) {
   
   unsigned int val = *my_ADC_DATA & 0x3FF;
   return val;
+}
+
+//Stepper Control
+void controlStepper() {
+  int controlValue = directionControl();
+        
+  if (controlValue != 0 && state != DISABLED) {
+    int stepsToMove = controlValue * 10;
+    myStepper.step(stepsToMove);
+    currentStepperPosition += controlValue * 5;
+  }
+}
+
+int directionControl() {
+    int pin36 = (*pinC & (1 << 1)) ? 1 : 0; 
+    int pin37 = (*pinC & (1 << 0)) ? 1 : 0;
+    
+    if (pin36 && !pin37) {
+        return 1; // Clockwise
+    } else if (!pin36 && pin37) {
+        return -1; // Counterclockwise
+    } else {
+        return 0;
+    }
+}
+
+//Fan motor functions
+void startMotor(){
+  *portC |= 0x20; //Set DIR1 high
+  *portC &= 0x10; //Set DIR2 low
+  analogWrite(ENABLE, 250);
+}
+
+void stopMotor(){
+  analogWrite(ENABLE, 0);
+}
+
+void U0init(int U0baud) {
+  unsigned long FCPU = 16000000;
+  unsigned int tbaud;
+  tbaud = (FCPU / 16 / U0baud - 1);
+
+  *myUCSR0A = 0x20;
+  *myUCSR0B = 0x18;
+  *myUCSR0C = 0x06;
+  *myUBRR0  = tbaud;
+}
+
+unsigned char U0kbhit() {
+  return *myUCSR0A & RDA;
+}
+
+unsigned char U0getchar() {
+  return *myUDR0;
 }
 
 //Fan motor functions
