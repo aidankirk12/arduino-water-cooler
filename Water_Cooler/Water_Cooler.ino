@@ -50,6 +50,7 @@ State state = DISABLED;
 const int stepsPerRevolution = 2038;
 Stepper myStepper = Stepper(stepsPerRevolution, 28, 29, 30, 31);
 
+
 //Stepper Motor Control
 int currentStepperPosition = 0;
 
@@ -168,7 +169,8 @@ void clearLCD() {
   lcd.write("                ");
   lcd.setCursor(0, 1);
   lcd.write("                ");
-}w
+}
+
 
 void updateLCD(float temp, float humidity) {
   if (millis() - lastLCDUpdate >= LCD_UPDATE_INTERVAL) {
@@ -230,8 +232,8 @@ void controlStepper() {
 }
 
 int directionControl() {
-    int pin36 = (*pinC & (1 << 1)) ? 1 : 0; // Read pin 36 (PC1)
-    int pin37 = (*pinC & (1 << 0)) ? 1 : 0; // Read pin 37 (PC0)
+    int pin36 = (*pinC & (1 << 1)) ? 1 : 0; 
+    int pin37 = (*pinC & (1 << 0)) ? 1 : 0;
     
     if (pin36 && !pin37) {
         return 1; // Clockwise
@@ -240,6 +242,36 @@ int directionControl() {
     } else {
         return 0;
     }
+}
+
+//Fan motor functions
+void startMotor(){
+  *portC |= 0x20; //Set DIR1 high
+  *portC &= 0x10; //Set DIR2 low
+  analogWrite(ENABLE, 250);
+}
+
+void stopMotor(){
+  analogWrite(ENABLE, 0);
+}
+
+void U0init(int U0baud) {
+  unsigned long FCPU = 16000000;
+  unsigned int tbaud;
+  tbaud = (FCPU / 16 / U0baud - 1);
+
+  *myUCSR0A = 0x20;
+  *myUCSR0B = 0x18;
+  *myUCSR0C = 0x06;
+  *myUBRR0  = tbaud;
+}
+
+unsigned char U0kbhit() {
+  return *myUCSR0A & RDA;
+}
+
+unsigned char U0getchar() {
+  return *myUDR0;
 }
 
 //Fan motor functions
